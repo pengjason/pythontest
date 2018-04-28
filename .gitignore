@@ -50,5 +50,5 @@ MANIFEST
 
 # Mr Developer
 .mr.developer.cfg
-.project
-.pydevproject
+#.project
+#.pydevproject

@@ -229,4 +229,5 @@ class Model(dict,metaclass=ModelMetaclass):
         if rows != 1:
             logging.warn('failed to remove by primary key: affected rows: %s' % rows)
     
+    
          
