@@ -6,6 +6,8 @@ from datetime import datetime
 from aiohttp import web
 from jinja2.loaders import FileSystemLoader,Environment
 from coroweb import add_routes, add_static
+from aiohttp.web_middlewares import middleware
+
 def init_jinja2(app,**kw):
     logging.info('init jinja2')
     options = dict(
@@ -34,7 +36,13 @@ def index(request):
 
 @asyncio.coroutine
 def init(loop):
-    app = web.Application(loop=loop)
+    app = web.Application(loop=loop,middlewares=[
+         logger_factory,response_factory
+    ])
+    init_jinja2(app,filters=dict(datetime=datetime_filter))
+    add_routes(app,'handlers')
+    add_static(app)
+    
     app.router.add_route('GET','/',index)
     srv = yield from loop.create_server(app.make_handler(), '127.0.0.1', 9000)
     logging.info('server started at http://127.0.0.1:9000...')
@@ -43,10 +51,16 @@ def init(loop):
 # loop.run_until_complete(init(loop))
 # loop.run_forever()
 
+
+
 #test user 
 import orm
 from models import User,Blog,Comment
 
+
+'''
+test
+'''
 async def test():
 #     await orm.create_pool(loop=loop, user='root',password='peng',db='awesome')
     await orm.create_pool(loop=loop, host='127.0.0.1', port=3306, user='root', password='peng',db='awesome')
@@ -62,10 +76,8 @@ def destory_pool():
         __pool.close()
         yield from __pool.wait_closed()
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(test())
-# loop.close()
-# for x in test(loop):
-#     pass
-destory_pool()
+# loop = asyncio.get_event_loop()
+# loop.run_until_complete(test())
+# 
+# destory_pool()
     
