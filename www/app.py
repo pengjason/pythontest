@@ -4,7 +4,7 @@ import asyncio,os,json,time
 from datetime import datetime
 
 from aiohttp import web
-from jinja2.loaders import FileSystemLoader,Environment
+from jinja2 import FileSystemLoader,Environment
 from coroweb import add_routes, add_static
 from aiohttp.web_middlewares import middleware
 
@@ -28,9 +28,30 @@ def init_jinja2(app,**kw):
         for name, f in filters.items():
             env.filters[name] = f
     app['__templating__'] = env
-    
+
+async def logger_factory(app,handler):
+    async def logger(request):
+        logging.info('Request: %s %s' % (request.method,request.path))
+        return (await handler(request))
+    return logger
+
+async def data_factory(app,handler):
+    async def parse_data(request):
+        if request.method == 'POST':
+            if request.content_type.startswith('application/json'):
+                request.__data__ = await request.json()
+                logging.info('request json: %s' % str(request.__data__))
+            elif request.content_type.startswith('application/x-www-form-urlencoded'):
+                request.__data__ = await request.post()
+                logging.info('request form: %s' % str(request.__data__))
+        return (await handler(request))
+    return parse_data
+
+
 def index(request):
     return web.Response(body=b'<h1> Awesome </h1>',content_type='text/html')
+
+
 #       return web.Response(body=u'<h1> Awesome 你好</h1>'.encode(encoding='gbk'),content_type='text/html')
 
 
