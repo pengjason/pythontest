@@ -1,6 +1,12 @@
-from click.types import Path
-from pip._vendor.appdirs import appauthor
-from builtins import __import__
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
+
+__author__ =  'jason'
+
+import asyncio,os,inspect,logging,functools
+from urllib import parse
+from aiohttp import web
+from apis import APIError
 
 def get(path):
     '''
@@ -44,7 +50,7 @@ class RequestHandler(object):
 def add_route(app,fn):
         method = getattr(fn,'__method__',None)
         path = getattr(fn,'__route__',None)
-        if path is None or method is None
+        if path is None or method is None:
             raise ValueError('@get or @post not defined in %s.' % str(fn))
         if not asyncio.iscoroutinefunction(fn) and not inspect.isgeneratorfunction(fn):
             fn = asyncio.coroutine(fn)
