@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+__author__ = 'jason'
+'''
+async web application.
+'''
+
 import logging; logging.basicConfig(level=logging.INFO)
 
 import asyncio,os,json,time
@@ -5,8 +12,9 @@ from datetime import datetime
 
 from aiohttp import web
 from jinja2 import FileSystemLoader,Environment
+import orm
 from coroweb import add_routes, add_static
-from aiohttp.web_middlewares import middleware
+
 
 def init_jinja2(app,**kw):
     logging.info('init jinja2')
@@ -32,6 +40,7 @@ def init_jinja2(app,**kw):
 async def logger_factory(app,handler):
     async def logger(request):
         logging.info('Request: %s %s' % (request.method,request.path))
+         # await asyncio.sleep(0.3)
         return (await handler(request))
     return logger
 
@@ -57,6 +66,13 @@ async def response_factory(app,handler):
             resp = web.Response(body=r)
             resp.content_type = 'application/octet-stream'
             return resp
+        if isinstance(r,str):
+            if r.startswith('redirect'):
+                return web.HTTPFound(r[9:])
+            resp = web.Response(body=r.encode('utf-8'))
+            resp.content_type = 'text/html;charset=utf-8'
+            return resp
+        
         if isinstance(r,dict):
             template = r.get('__template__')
             if template is None:
@@ -73,6 +89,7 @@ async def response_factory(app,handler):
             t,m = r
             if isinstance(t,int) and t >= 100 and t < 600:
                 return web.Response(t,str(m))
+        # default:
         resp = web.Response(body=str(r).encode('utf-8'))
         resp.content_type = 'text/plain;charset=utf-8'
         return resp
