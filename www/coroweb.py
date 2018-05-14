@@ -99,12 +99,50 @@ class RequestHandler(object):
                         return web.HTTPBadRequest('json body must be object.')
                     kw = params
                 elif ct.startswith('application/x-www-form-urlencoded') or ct.startswith('multipart/form-data'):
-                    
-                    
-                    
-        r = yield from self._func(**kw)
-        return r
-    
+                    params = await request.post()
+                    kw = dict(**parms)
+                else:
+                    return web.HTTPBadRequest('Unsupported Content-Type: %s' % request.content_type)
+            if request.method == 'GET':
+                qs = request.query_string
+                if qs:
+                    kw = dict()
+                    for k,v in parse.parse_qs(qs,True).items():
+                        kw[k]  = v[0]
+        if kw is None:
+            kw = dict(**request.math_info)
+        else:
+            if not self._has_var_kw_args and self._named_kw_args:
+                # remove all unamed kw:
+                copy = dict()
+                for name in self._named_kw_args:
+                    if name in kw:
+                        copy[name] = kw[name]
+                kw = copy
+             # check named arg:   
+            for k, v in request.math_info.items():
+                if k in kw:
+                    logging.warn('Duplicate arg name in named arg and kw args: %s' % k)
+                kw[k] = v
+        if self._has_request_arg:
+            kw['request'] = request
+         # check required kw:       
+        if self._required_kw_args:
+            for name in self._required_kw_args:
+                if not name in kw:
+                    return web.HTTPBadRequest('Missing argument: %s' % name)            
+        logging.info('call with args: %s' % str(kw))    
+        try:
+            r = await self._func(**kw)
+            return r
+        except APIError as e:
+            return dict(error=e.error,data=e.data,message=e.message)
+        
+def add_static(app):
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'static')                
+    app.router.add_static('/static/',path)  
+    logging.info('add static %s => %s' % ('/static/', path))
+
 
 
 def add_route(app,fn):
