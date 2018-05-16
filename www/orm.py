@@ -125,14 +125,14 @@ class ModelMetaclass(type):
                 logging.info(' found mapping: %s ==> %s' % (k,v))
                 mappings[k] = v
                 if v.primary_key:
-                     # 找到主键:
-                     if primaryKey:
-                         raise RuntimeError('Duplicate primary key for field: %s' % k)
-                     primaryKey = k
+                    # 找到主键:
+                    if primaryKey:
+                        raise StandardError('Duplicate primary key for field: %s' % k)
+                    primaryKey = k
                 else:
                     fields.append(k)
         if not primaryKey:
-            raise RuntimeError('Primary key not found')
+            raise StandardError('Primary key not found.')
         for k in mappings.keys():
             attrs.pop(k)
         escaped_fields = list(map(lambda f: '`%s`' %f,fields))
@@ -169,17 +169,10 @@ class Model(dict,metaclass=ModelMetaclass):
             field = self.__mappings__[key]
             if field.default is not None:
                 value = field.default() if callable(field.default) else field.default
-                logging.debug('using default value for %s: %s' %(key,value))
+                logging.debug('using default value for %s: %s' % (key, str(value)))
+                setattr(self, key, value)
         return value
-    @classmethod
-    @asyncio.coroutine
-    def find(cls,pk):
-        ' find object by primary key.'
-        rs = yield from select('%s where `%s` = ?' %(cls.__select__, cls.__primary_key__),[pk],1)
-        if len(rs) == 0:
-            return None
-        return cls(**rs[0])
-    
+
     @classmethod
     async def findAll(cls, where=None, args=None, **kw):
         ' find objects by where clause. '
@@ -217,17 +210,23 @@ class Model(dict,metaclass=ModelMetaclass):
         rs = await select(' '.join(sql), args, 1)
         if len(rs) == 0:
             return None
-        return rs[0]['_num_'] 
-    
-    
-    @asyncio.coroutine
-    def save(self):
-         args = list(map(self.getValueOrDefault, self.__fields__))
-         args.append(self.getValueOrDefault(self.__primary_key__))
-         rows = yield from execute(self.__insert__, args)
-         if rows != 1:
-             logging.warn('failed to insert record: affected rows: %s' % rows)
-    
+        return rs[0]['_num_']
+
+    @classmethod
+    async def find(cls, pk):
+        ' find object by primary key. '
+        rs = await select('%s where `%s`=?' % (cls.__select__, cls.__primary_key__), [pk], 1)
+        if len(rs) == 0:
+            return None
+        return cls(**rs[0])
+
+    async def save(self):
+        args = list(map(self.getValueOrDefault, self.__fields__))
+        args.append(self.getValueOrDefault(self.__primary_key__))
+        rows = await execute(self.__insert__, args)
+        if rows != 1:
+            logging.warn('failed to insert record: affected rows: %s' % rows)
+
     async def update(self):
         args = list(map(self.getValue, self.__fields__))
         args.append(self.getValue(self.__primary_key__))
