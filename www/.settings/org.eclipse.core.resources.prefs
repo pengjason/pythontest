@@ -5,5 +5,6 @@ encoding/config.py=utf-8
 encoding/config_default.py=utf-8
 encoding/config_override.py=utf-8
 encoding/coroweb.py=utf-8
+encoding/models.py=utf-8
 encoding/orm.py=utf-8
 encoding/orm2.py=utf-8
