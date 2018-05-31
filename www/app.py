@@ -160,7 +160,7 @@ def destory_pool():
         __pool.close()
         yield from __pool.wait_closed()
 
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(test())
-# 
-# destory_pool()
+loop = asyncio.get_event_loop()
+loop.run_until_complete(test())
+ 
+destory_pool()
