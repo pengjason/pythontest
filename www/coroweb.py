@@ -80,7 +80,7 @@ class RequestHandler(object):
         self._app = app
         self._func = fn
         self._has_request_arg = has_request_arg(fn)
-        self._has_var_kw_args = has_var_kw_arg(fn)
+        self._has_var_kw_arg = has_var_kw_arg(fn)
         self._has_named_kw_args = has_named_kw_args(fn)
         self._named_kw_args = get_named_kw_args(fn)
         self._required_kw_args = get_required_kw_args(fn)
@@ -88,7 +88,7 @@ class RequestHandler(object):
    
     async def __call__(self,request):
         kw = None
-        if self._has_var_kw_args or self._has_named_kw_args or self._required_kw_args:
+        if self._has_var_kw_arg or self._has_named_kw_args or self._required_kw_args:
             if request.method == 'POST':
                 if not request.content_type:
                     return web.HTTPBadRequest('missing content-type')
