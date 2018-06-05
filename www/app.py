@@ -122,6 +122,8 @@ def response_factory(app, handler):
         resp = web.Response(body=str(r).encode('utf-8'))
         resp.content_type = 'text/plain;charset=utf-8'
         return resp
+    
+    
     return response
         
 def datetime_filter(t):

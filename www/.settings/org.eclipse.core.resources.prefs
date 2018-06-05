@@ -8,4 +8,5 @@ encoding/coroweb.py=utf-8
 encoding/models.py=utf-8
 encoding/orm.py=utf-8
 encoding/orm2.py=utf-8
+encoding/pymonitor.py=utf-8
 encoding/testfun.py=utf-8

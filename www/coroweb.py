@@ -14,7 +14,7 @@ def get(path):
     '''
     def decorator(func):
         @functools.wraps(func)
-        def wrapper(*args, **kw):\
+        def wrapper(*args, **kw):
             return func(*args,**kw)
         wrapper.__method__ = 'GET'
         wrapper.__route__ = path
@@ -27,7 +27,7 @@ def post(path):
     '''
     def decorator(func):
         @functools.wraps(func)
-        def wrapper(*args, **kw):\
+        def wrapper(*args, **kw):
             return func(*args,**kw)
         wrapper.__method__ = 'POST'
         wrapper.__route__ = path
